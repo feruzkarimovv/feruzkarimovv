@@ -1,5 +1,5 @@
 <!-- fk1:image -->
-<a href="https://feruz-karimov.dev"><img src="https://github.com/feruzkarimovv/feruzkarimovv/raw/fk1/fk1.webp?v=2026-09-27" width="100%" alt="FK-1 accretion map, 2025-09-28 to 2026-09-27: 1,130 contributions as gas spiralling into a ray-traced black hole, 8 public repos as orbiting stars, 16 large merged PRs as tidal-disruption streams. Mass 11.130 solar masses, +16 in the last 7 days."></a>
+<a href="https://feruz-karimov.dev"><img src="https://github.com/feruzkarimovv/feruzkarimovv/raw/fk1/fk1.webp?v=2026-09-27" width="100%" alt="FK-1 accretion map, 2025-09-28 to 2026-09-27: 1,131 contributions as gas spiralling into a ray-traced black hole, 8 public repos as orbiting stars, 16 large merged PRs as tidal-disruption streams. Mass 11.131 solar masses, +17 in the last 7 days."></a>
 <!-- /fk1:image -->
 
 <p align="center"><sub>My last year on GitHub, falling into a black hole. Re-rendered every night by a ray tracer that runs in <a href="https://github.com/feruzkarimovv/feruzkarimovv/blob/main/.github/workflows/fk1.yml">GitHub Actions</a>.</sub></p>
