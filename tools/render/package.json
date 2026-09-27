@@ -1,0 +1,11 @@
+{
+  "name": "profile-render",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render": "node capture.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

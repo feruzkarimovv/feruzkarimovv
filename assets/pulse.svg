@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <style>
+    .ring { transform-origin: 8px 8px; animation: ping 2.2s cubic-bezier(.2, .8, .2, 1) infinite; }
+    @keyframes ping { from { transform: scale(.55); opacity: .8; } to { transform: scale(1.9); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .ring { animation: none; opacity: 0; } }
+  </style>
+  <circle class="ring" cx="8" cy="8" r="4" fill="#7dffb0" />
+  <circle cx="8" cy="8" r="3.6" fill="#3ddc84" />
+</svg>
