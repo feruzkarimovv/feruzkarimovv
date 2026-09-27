@@ -1,0 +1,53 @@
+# FK-1: re-renders the accretion map from the last year of GitHub activity, every night.
+name: FK-1
+
+on:
+  schedule:
+    - cron: '23 4 * * *' # 04:23 UTC, after the contribution calendar rolls over
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['engine/**', '.github/workflows/fk1.yml']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fk1
+  cancel-in-progress: true
+
+jobs:
+  accrete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install libwebp tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq webp
+
+      - name: Trace, paint, encode
+        run: node engine/accrete.mjs --out out --readme README.md
+
+      # The image lives on its own branch, replaced every night, so main's history doesn't grow by megabytes a day.
+      - name: Publish the frame to the fk1 branch
+        working-directory: out
+        run: |
+          git init -q -b fk1
+          git add fk1.webp fk1.png
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -q -m "FK-1 · $(date -u +%F)"
+          git push -f -q "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" fk1
+
+      - name: Commit the observatory log
+        run: |
+          git diff --quiet README.md && exit 0
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -q -m "FK-1 · observatory log $(date -u +%F)" README.md
+          git push -q
