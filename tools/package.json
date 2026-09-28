@@ -2,9 +2,9 @@
   "name": "fk1-tools",
   "private": true,
   "type": "module",
-  "description": "One-off build helpers. The nightly renderer in engine/ has no dependencies.",
+  "description": "Renders assets/banner.webp with the ray tracer in engine/.",
   "scripts": {
-    "font": "node font-atlas.mjs"
+    "banner": "node banner.mjs"
   },
   "devDependencies": {
     "playwright": "1.63.0"
