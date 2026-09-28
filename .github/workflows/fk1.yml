@@ -45,9 +45,9 @@ jobs:
             commit -q -m "FK-1 · $(date -u +%F)"
           git push -f -q "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" fk1
 
-      - name: Commit the observatory log
+      - name: Commit the README update
         run: |
           git diff --quiet README.md && exit 0
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -q -m "FK-1 · observatory log $(date -u +%F)" README.md
+            commit -q -m "FK-1 · nightly update $(date -u +%F)" README.md
           git push -q
