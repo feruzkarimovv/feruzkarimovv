@@ -5,6 +5,7 @@
 
 const QUERY = `query($login: String!) {
   user(login: $login) {
+    name
     contributionsCollection {
       restrictedContributionsCount
       contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } }
@@ -45,6 +46,7 @@ export async function fetchActivity(login, token) {
 
   return {
     login,
+    name: u.name,
     today: days[days.length - 1].date,
     total: cal.totalContributions,
     private: u.contributionsCollection.restrictedContributionsCount,

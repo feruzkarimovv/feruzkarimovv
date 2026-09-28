@@ -76,6 +76,7 @@ const jets = releaseAge <= 60 ? Math.exp(-releaseAge / 21) : 0; // a release fir
 const week = data.days.slice(-7).reduce((a, d) => a + d.count, 0);
 const stats = {
   login: data.login,
+  name: data.name || data.login,
   from: data.days[0].date,
   to: data.today,
   rays: cam.w * cam.h,
@@ -86,8 +87,8 @@ const stats = {
   az: VIEW.az,
   jets,
   jetLine: release
-    ? [jets > 0 ? 'RELATIVISTIC JETS · FIRING' : 'JETS · QUIET', `${release.repo} ${release.tag} · ${releaseAge} d ago`]
-    : ['JETS · QUIET', 'no releases yet'],
+    ? [jets > 0 ? 'LAST RELEASE · JETS ON' : 'LAST RELEASE', `${release.repo} ${release.tag} · ${releaseAge} days ago`]
+    : ['LAST RELEASE', 'none yet'],
 };
 log(`disk: ${disk.stars.length} stars, ${disk.tdes.length} tidal disruptions, jets ${jets.toFixed(2)}`);
 

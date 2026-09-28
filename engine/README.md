@@ -13,7 +13,7 @@ This folder renders the accretion map at the top of my profile. It runs every ni
 4. **Frames** ([`shade.mjs`](shade.mjs)). Each frame is a lookup, not a ray trace. Every recorded crossing samples the textures, and turbulence flows at the Keplerian rate through a two-phase flow map that loops seamlessly. Crossings are composited front to back with relativistic beaming. Then the site's post chain runs on the CPU: UnrealBloom-style mips, chromatic aberration, ACES and the vignette.
 5. **Plate** ([`plate.mjs`](plate.mjs), [`overlay.mjs`](overlay.mjs)). Pixels are bucketed by where their ray first meets the disk. That answers "where on screen, after lensing, is the star at (r, φ)?", so labels follow each repo's *lensed* image. A greedy layout with frame-to-frame memory keeps labels from colliding or flickering. Type is a pre-rasterised JetBrains Mono ([`font.json`](font.json), made by [`tools/font-atlas.mjs`](../tools/font-atlas.mjs)).
 6. **Encode.** 240 frames go into an animated WebP. The gas steps every 4th frame, and stars get a local glow instead of full bloom, so most frames differ only around the moving stars. That keeps the file around 3 MB.
-7. **Publish** ([`log.mjs`](log.mjs), [`../.github/workflows/fk1.yml`](../.github/workflows/fk1.yml)). The image is force-pushed to the `fk1` branch, so main doesn't grow by megabytes a day. The observatory log is rewritten between markers in the README.
+7. **Publish** ([`log.mjs`](log.mjs), [`../.github/workflows/fk1.yml`](../.github/workflows/fk1.yml)). The image is force-pushed to the `fk1` branch, so main doesn't grow by megabytes a day. The "Lately" list and the image link are rewritten between markers in the README.
 
 ## Run it
 

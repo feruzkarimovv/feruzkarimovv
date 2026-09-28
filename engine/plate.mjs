@@ -86,7 +86,7 @@ export function planNotes({ cam, ss, index, map, data, disk, stats }) {
   });
   const [pm, pv] = Object.entries(months).sort((a, b) => b[1].sum - a[1].sum)[0];
   const pp = at(orbitOf(pv.ages[pv.ages.length >> 1]), near - 0.75);
-  if (pp) notes.push({ id: 'peak', p: pp, dir: away(pp, [-60, 30]), lines: [`${MONTHS[+pm.slice(5, 7) - 1]} ${pm.slice(0, 4)}`, { str: `${n(pv.sum)} contributions`, alpha: 0.7 }] });
+  if (pp) notes.push({ id: 'peak', p: pp, dir: away(pp, [-60, 30]), lines: ['BUSIEST MONTH', { str: `${MONTHS[+pm.slice(5, 7) - 1]} ${pm.slice(0, 4)} · ${n(pv.sum)} contributions`, alpha: 0.7 }] });
 
   // The biggest tidal disruption.
   const big = [...disk.tdes].sort((a, b) => b.additions + b.deletions - (a.additions + a.deletions))[0];
@@ -98,14 +98,14 @@ export function planNotes({ cam, ss, index, map, data, disk, stats }) {
         p: bp,
         dir: away(bp, [0, -40]),
         color: COOL,
-        lines: [{ str: 'TIDAL DISRUPTION', color: COOL }, { str: `${big.repo.split('/')[1]}#${big.number} · ${n(big.additions + big.deletions)} lines`, alpha: 0.7 }],
+        lines: [{ str: 'BIGGEST PULL REQUEST', color: COOL }, { str: `${big.repo.split('/')[1]}#${big.number} · ${n(big.additions + big.deletions)} lines`, alpha: 0.7 }],
       });
   }
 
   // What falls in today: the day from a year ago reaches the ISCO.
   const ip = at(ISCO + 0.12, near - 0.25);
   const oldest = data.days[0];
-  if (ip) notes.push({ id: 'isco', p: ip, dir: [-0.55, 0.83], len: 52, lines: [{ str: 'ISCO · FALLING IN', color: ACCENT }, { str: `${fmtDate(oldest.date)} ${oldest.date.slice(0, 4)} · ${n(oldest.count)} contributions`, alpha: 0.7 }] });
+  if (ip) notes.push({ id: 'isco', p: ip, dir: [-0.55, 0.83], len: 52, lines: [{ str: 'A YEAR AGO · FALLING IN', color: ACCENT }, { str: `${fmtDate(oldest.date)} ${oldest.date.slice(0, 4)} · ${n(oldest.count)} contributions`, alpha: 0.7 }] });
 
   return { center, notes: notes.map((x) => ({ ...x, fixed: true })) };
 }
@@ -176,15 +176,15 @@ export function reservedBoxes(W, H) {
 /** Draw the plate onto an 8-bit frame. */
 export function drawPlate(img, w, h, callouts, stats) {
   const PAD = 30;
-  text(img, w, h, 'FK-1 · ACCRETION MAP', PAD, PAD + 14, { size: 19, track: 2 });
-  text(img, w, h, `github.com/${stats.login} · ${stats.from} → ${stats.to}`, PAD, PAD + 40, { size: 15, alpha: 0.6, track: 0.6 });
-  text(img, w, h, `RE-RENDERED ${stats.to} · ${n(stats.rays)} RAYS`, w - PAD, PAD + 14, { size: 15, alpha: 0.55, track: 0.8, align: 'right' });
+  const day = (d) => `${fmtDate(d)} ${d.slice(0, 4)}`;
+  text(img, w, h, `${stats.name.toUpperCase()} · A YEAR ON GITHUB`, PAD, PAD + 14, { size: 19, track: 2 });
+  text(img, w, h, `github.com/${stats.login} · ${day(stats.from)} → ${day(stats.to)}`, PAD, PAD + 40, { size: 15, alpha: 0.6, track: 0.6 });
+  text(img, w, h, `UPDATED ${day(stats.to)}`, w - PAD, PAD + 14, { size: 15, alpha: 0.55, track: 0.8, align: 'right' });
 
   const foot = [
-    ['MASS', `${stats.mass.toFixed(3)} M☉`],
-    ['ACCRETED', n(stats.total)],
+    ['CONTRIBUTIONS', n(stats.total)],
     ['LAST 7 DAYS', `+${n(stats.week)}`],
-    ['STARS CAPTURED', String(stats.repos)],
+    ['NEW REPOS', String(stats.repos)],
   ];
   let x = PAD;
   for (const [k, v] of foot) {
