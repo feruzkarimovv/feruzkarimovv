@@ -1,5 +1,5 @@
 <!-- fk1:image -->
-<a href="https://feruz-karimov.dev"><img src="https://github.com/feruzkarimovv/feruzkarimovv/raw/fk1/fk1.webp?v=2026-09-28" width="100%" alt="Feruz Karimov's last 12 months on GitHub, drawn as a black hole: 1,129 contributions as glowing rings, 8 new repos as orbiting dots, the biggest pull requests as blue streaks. +17 in the last 7 days."></a>
+<a href="https://feruz-karimov.dev"><img src="https://github.com/feruzkarimovv/feruzkarimovv/raw/fk1/fk1.webp?v=2026-09-28" width="100%" alt="Feruz Karimov's last 12 months on GitHub, drawn as a black hole: 1,130 contributions as glowing rings, 8 new repos as orbiting dots, the biggest pull requests as blue streaks. +18 in the last 7 days."></a>
 <!-- /fk1:image -->
 
 <h3 align="center">My last 12 months of code, falling into a black hole.</h3>
