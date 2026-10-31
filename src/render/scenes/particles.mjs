@@ -6,15 +6,16 @@
 export async function setup(ctx) {
   const { gl, w, h } = ctx;
   const P = window.PARAMS || {};
-  const avatar = P.mode === 'avatar', compact = P.mode === 'compact' || avatar, light = P.theme === 'light';
-  const N = avatar ? 14000 : compact ? 16000 : 31000, LETTER = compact ? 0.88 : 0.84;    // share of motes that become the name
+  const avatar = P.mode === 'avatar', card = P.mode === 'card', compact = P.mode === 'compact' || avatar, light = P.theme === 'light';
+  const J = window.ASSETS_JSON || {};                      // card: { owner, repo, title, blurb }
+  const N = avatar ? 14000 : card ? 30000 : compact ? 16000 : 31000, LETTER = compact ? 0.88 : 0.84;    // share of motes that become the name
 
   // --- Where the name lives: sample points inside the glyphs, weighted by coverage.
-  const lines = avatar ? ['FK'] : compact ? ['Feruz', 'Karimov'] : ['Feruz Karimov'];
+  const lines = avatar ? ['FK'] : card ? [J.title] : compact ? ['Feruz', 'Karimov'] : ['Feruz Karimov'];
   const cw = 2400, ch = compact ? 1500 : 640;
   const c = Object.assign(document.createElement('canvas'), { width: cw, height: ch });
   const g = c.getContext('2d');
-  const fs = compact ? 520 : 400;
+  const fs = card ? Math.min(400, 2250 / (0.56 * J.title.length)) : compact ? 520 : 400;
   g.font = `${fs}px InterDisplay-Medium`; g.letterSpacing = `${-fs * 0.03}px`;
   g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
   const lh = fs * 1.02, y0 = ch / 2 - (lines.length - 1) * lh / 2 + fs * 0.36;
@@ -22,7 +23,7 @@ export async function setup(ctx) {
   const alpha = g.getImageData(0, 0, cw, ch).data;
   let x0 = cw, x1 = 0, ya = ch, yb = 0;
   for (let y = 0; y < ch; y += 2) for (let x = 0; x < cw; x += 2) if (alpha[(y * cw + x) * 4 + 3] > 128) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); ya = Math.min(ya, y); yb = Math.max(yb, y); }
-  const textW = avatar ? 3.4 : compact ? 4.6 : 7.4;           // world units the name spans
+  const textW = avatar ? 3.4 : card ? Math.min(9, 0.95 * J.title.length) : compact ? 4.6 : 7.4;           // world units the name spans
   const scale = textW / (x1 - x0);
   const cx = (x0 + x1) / 2, cy = (ya + yb) / 2;
 
@@ -34,7 +35,7 @@ export async function setup(ctx) {
     if (i < nLetter) {
       let x, y;
       do { x = x0 + rnd() * (x1 - x0); y = ya + rnd() * (yb - ya); } while (alpha[(Math.floor(y) * cw + Math.floor(x)) * 4 + 3] / 255 < rnd());
-      tgt[i * 4] = (x - cx) * scale; tgt[i * 4 + 1] = -(y - cy) * scale; tgt[i * 4 + 2] = (rnd() - 0.5) * 0.04; tgt[i * 4 + 3] = 1;
+      tgt[i * 4] = (x - cx) * scale; tgt[i * 4 + 1] = -(y - cy) * scale + (card ? 0.6 : 0); tgt[i * 4 + 2] = (rnd() - 0.5) * 0.04; tgt[i * 4 + 3] = 1;
     } else tgt[i * 4 + 3] = 0;                             // ambient dust: never settles
     sd[i * 4] = rnd(); sd[i * 4 + 1] = rnd(); sd[i * 4 + 2] = rnd(); sd[i * 4 + 3] = rnd();
   }
@@ -149,7 +150,7 @@ void main(){
   const U = (n) => gl.getUniformLocation(prog, n);
 
   // --- Camera: a touch off-axis, so the name has depth and the dust has room.
-  const sx = w / (avatar ? 300 : compact ? 340 : 846);       // pixels per CSS pixel, so points look the same size everywhere
+  const sx = w / (avatar ? 300 : card ? 700 : compact ? 340 : 846);       // pixels per CSS pixel, so points look the same size everywhere
   const aspect = w / h, fov = (compact ? 30 : 24) * Math.PI / 180;
   const eye = compact ? [0.6, 0.2, 10.2] : [1.1, -0.35, 15.2], at = [0, 0, 0];
   const look = (e, t) => {
@@ -164,6 +165,25 @@ void main(){
   };
   const focus = Math.hypot(...sub(at, eye));
 
+  if (card) {
+    const ov = Object.assign(document.createElement('canvas'), { width: w, height: h });
+    const og = ov.getContext('2d'), k = w / 1280;
+    og.fillStyle = '#6E6E6E'; og.font = `${22 * k}px GeistMono-Regular`; og.letterSpacing = `${0.6 * k}px`;
+    og.fillText(`${J.owner} / ${J.repo}`, 64 * k, 76 * k);
+    og.fillStyle = '#9A9A9A'; og.font = `${34 * k}px Inter-Regular`; og.letterSpacing = '0px';
+    // One line if it fits; otherwise the two-line split with the most even lines (no stranded word).
+    const words = J.blurb.split(' '), wOf = (a) => og.measureText(a.join(' ')).width;
+    let out = [J.blurb];
+    if (wOf(words) > 1100 * k) {
+      let best = Infinity;
+      for (let i = 1; i < words.length; i++) {
+        const m = Math.max(wOf(words.slice(0, i)), wOf(words.slice(i)));
+        if (m < best) { best = m; out = [words.slice(0, i).join(' '), words.slice(i).join(' ')]; }
+      }
+    }
+    out.forEach((l, i) => og.fillText(l, 64 * k, h - (72 + (out.length - 1 - i) * 46) * k));
+    ctx.overlay = ov;
+  }
   const acc = ctx.target(w, h);
   // Bloom: two blur passes at quarter resolution.
   const bw = Math.round(w / 4), bh = Math.round(h / 4);
@@ -208,7 +228,7 @@ void main(){
     gl.uniform2f(U('uRes'), w, h);
     gl.uniformMatrix4fv(U('uView'), false, viewAt(phase)); gl.uniformMatrix4fv(U('uProj'), false, proj);
     gl.uniform1f(U('uFocus'), focus); gl.uniform1f(U('uBokeh'), 1.5 * sx); gl.uniform1f(U('uSize'), 1.15 * sx);
-    gl.uniform1f(U('uHalfW'), compact ? 3.0 : 4.6); gl.uniform1f(U('uDust'), compact ? 0.32 : 1.0);
+    gl.uniform1f(U('uHalfW'), compact ? 3.0 : 4.6); gl.uniform1f(U('uDust'), compact ? 0.32 : card ? 0.7 : 1.0);
     // Motion blur. While the name holds, a short shutter keeps the letters crisp; while the dust is in
     // flight it opens to ~6 frames (long exposure), so every mote draws its path as a streak of light.
     const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
