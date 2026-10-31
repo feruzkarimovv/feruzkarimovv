@@ -25,15 +25,15 @@ export function header(t, text, { mode = 'wide' } = {}) {
   return make(doc, t, W, H, mode, body, { title: text });
 }
 
-// Under the hero: the one line about you, and what you're looking at.
-export function caption(t, line, note, { mode = 'wide' } = {}) {
+// Under the hero: the one line about you.
+export function caption(t, line, { mode = 'wide' } = {}) {
   const doc = new Doc();
   const c = mode === 'compact';
-  const W = c ? COMPACT : WIDE, H = c ? 72 : 52;
+  const W = c ? COMPACT : WIDE, H = c ? 50 : 52;
   const body = c
-    ? doc.text('text', 0, 30, 14.5, line, { fill: t.fg2, tracking: -0.006 }) + doc.text('mono', 0, 54, 9.5, note.toUpperCase(), label(t))
-    : doc.text('text', 0, 33, 15, line, { fill: t.fg2, tracking: -0.006 }) + doc.text('mono', W, 32, 9.5, note.toUpperCase(), { ...label(t), anchor: 'end' });
-  return make(doc, t, W, H, mode, body, { title: `${line} ${note}` });
+    ? doc.text('text', 0, 30, 14.5, line, { fill: t.fg2, tracking: -0.006 })
+    : doc.text('text', 0, 33, 15, line, { fill: t.fg2, tracking: -0.006 });
+  return make(doc, t, W, H, mode, body, { title: line });
 }
 
 // A quiet browser window around a real capture of the product (or a figure, for things without a UI).

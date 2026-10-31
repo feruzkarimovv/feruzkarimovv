@@ -2,7 +2,6 @@
 
 export const name = 'Feruz Karimov';
 export const tagline = 'Builds products, and the models behind them.';
-export const heroNote = 'Particles, not type.';
 
 // Every image needs a real link: GitHub wraps unlinked images in a link to the raw file, which breaks
 // the <picture> swap. These are the quiet ones (hero, section labels, footer).

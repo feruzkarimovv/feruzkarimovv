@@ -19,7 +19,7 @@ const lastOf = (arr, i) => i === arr.length - 1;
 
 // Rows top to bottom: [file name, (theme, mode) => svg, link, alt text].
 const rows = [
-  ['caption', (t, mode) => caption(t, content.tagline, content.heroNote, { mode }), L.hero, `${content.tagline} ${content.heroNote}`],
+  ['caption', (t, mode) => caption(t, content.tagline, { mode }), L.hero, content.tagline],
   ['h-work', (t, mode) => header(t, 'Selected work', { mode }), L.work, 'Selected work'],
   ...work.map((w, i) => [`work-${w.id}`, (t, mode) => workRow(t, w, i, { mode, last: lastOf(work, i) }), w.href, `${w.title}. ${w.blurb} ${w.metric}.`]),
   ['h-also', (t, mode) => header(t, 'Also', { mode }), L.also, 'Also'],
