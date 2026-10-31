@@ -41,7 +41,7 @@ const jsonFile = opt('json', null);
 await page.evaluate((j) => { window.ASSETS_JSON = j; }, jsonFile ? JSON.parse(fs.readFileSync(jsonFile, 'utf8')) : null);
 // Scene parameters: --param key=value,key=value -> window.PARAMS (strings).
 const params = Object.fromEntries((opt('param', '') || '').split(',').filter(Boolean).map((kv) => kv.split('=')));
-await page.evaluate((p) => { window.PARAMS = p; }, params);
+await page.evaluate(({ p, n }) => { window.PARAMS = p; window.FRAMES = n; }, { p: params, n: FRAMES });
 await page.evaluate(async ({ src, W, H }) => window.boot(src, W, H), { src: fs.readFileSync(sceneFile, 'utf8'), W, H });
 
 // Per-frame images: --seq dir/c%04d.png -> window.SEQ (an Image) is set before each frame is drawn.

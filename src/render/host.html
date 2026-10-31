@@ -23,7 +23,7 @@ window.boot = async (src, w, h) => {
     return sh; };
   let unit = 0;
   const ctx = {
-    gl, canvas, w: W, h: H,
+    gl, canvas, w: W, h: H, frames: window.FRAMES || 1,
     // Fullscreen fragment shader; uniforms: numbers, [x,y], [x,y,z], [x,y,z,w], or {tex} for textures.
     shader(fs) {
       const prog = gl.createProgram();

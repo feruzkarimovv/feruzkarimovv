@@ -1,41 +1,36 @@
-// Builds the hero: solves the glass for the name, traces the light it throws for every frame, then
-// renders the scene on the GPU into ../assets:
-//   hero.webp, hero.compact.webp                 6 s loops (desktop, phones)
-//   hero.still.webp, hero.compact.still.webp     in-focus stills for prefers-reduced-motion
-// Needs a Mac GPU (or patience: SwiftShader works too) plus python3 with numpy, scipy and Pillow.
+// Builds the hero: the particle scene rendered on the GPU (render/scenes/particles.mjs) into ../assets.
+//   hero.{wide,compact}.{dark,light}.avif     8 s loops (AV1 predicts motion between frames, so a field
+//                                             of moving points costs ~1 MB instead of ~13 MB as WebP)
+//   hero.{wide,compact}.{dark,light}.webp     the first frame (the name), for reduced motion and for
+//                                             browsers without AVIF
+// Needs ffmpeg with libsvtav1, cwebp, and a GPU (or patience: SwiftShader works too).
 //   node render/build-hero.mjs
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ASSETS = path.resolve(here, '../../assets');
-const work = fs.mkdtempSync(path.join(os.tmpdir(), 'hero-'));
-const FRAMES = 96, FPS = 16, FOCUS = 0.42;               // the loop holds focus around 30-66% of the way
-
-const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: ['ignore', 'pipe', 'inherit'], ...opts }).toString().trim();
-console.log(run('python3', ['frames.py', work, '--frames', String(FRAMES)], { cwd: path.join(here, 'caustic') }).split('\n').at(-1));
-const scene = JSON.parse(fs.readFileSync(path.join(work, 'lens.json')));
-scene.heights = JSON.parse(fs.readFileSync(path.join(work, 'heights.json'))).heights;
-fs.writeFileSync(path.join(work, 'scene.json'), JSON.stringify(scene));
-
+const FRAMES = 160, FPS = 20;
 const variants = [
-  { name: 'hero', w: 1269, h: 660, params: 'round=18' },
-  { name: 'hero.compact', w: 680, h: 600, params: 'round=16,mode=compact' },
+  { mode: 'wide', w: 1696, h: 880 },
+  { mode: 'compact', w: 680, h: 600 },
 ];
-const base = ['render/render.mjs', 'render/scenes/caustic.mjs'];
-const common = (v) => ['--w', String(v.w), '--h', String(v.h), '--frames', String(FRAMES), '--fps', String(FPS),
-  '--json', path.join(work, 'scene.json'), '--seq', path.join(work, 'c%04d.png'), '--param', v.params];
 for (const v of variants) {
-  const loop = path.join(ASSETS, `${v.name}.webp`);
-  // Every frame a keyframe: partial-frame updates leave faint seams in the dark gradients, and the scene
-  // changes enough each frame that full frames barely cost more.
-  console.log(run('node', [...base, loop, ...common(v), '--q', '80', '--kmax', '1'], { cwd: path.resolve(here, '..') }).split('\n').at(-1));
-  const png = path.join(work, `${v.name}.still.png`);
-  run('node', [...base, 'x', ...common(v), '--still', png, '--at', String(FOCUS)], { cwd: path.resolve(here, '..') });
-  run('cwebp', ['-quiet', '-q', '88', '-alpha_q', '100', png, '-o', path.join(ASSETS, `${v.name}.still.webp`)]);
-  console.log(`${v.name}.still.webp ${(fs.statSync(path.join(ASSETS, `${v.name}.still.webp`)).size / 1024).toFixed(0)} KB`);
+  for (const theme of ['dark', 'light']) {
+    const name = `hero.${v.mode}.${theme}`;
+    const log = execFileSync('node', ['render/render.mjs', 'render/scenes/particles.mjs', 'x', '--w', String(v.w), '--h', String(v.h),
+      '--frames', String(FRAMES), '--fps', String(FPS), '--png-only', '--param', `mode=${v.mode},theme=${theme}`], { cwd: path.resolve(here, '..') }).toString();
+    const dir = log.match(/frames in (\/\S+)/)[1];
+    // Explicit BT.709 signalling so every browser decodes the background to GitHub's page colour.
+    execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', path.join(dir, 'f%04d.png'),
+      '-vf', 'scale=out_color_matrix=bt709:out_range=limited,format=yuv420p', '-c:v', 'libsvtav1', '-crf', '36', '-preset', '5',
+      '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'iec61966-2-1', '-color_range', 'tv', '-loop', '0',
+      path.join(ASSETS, `${name}.avif`)], { stdio: ['ignore', 'ignore', 'ignore'] });
+    execFileSync('cwebp', ['-quiet', '-q', '90', path.join(dir, 'f0000.png'), '-o', path.join(ASSETS, `${name}.webp`)]);
+    fs.rmSync(dir, { recursive: true });
+    const kb = (f) => (fs.statSync(path.join(ASSETS, f)).size / 1024).toFixed(0);
+    console.log(`${name}: loop ${kb(`${name}.avif`)} KB, still ${kb(`${name}.webp`)} KB`);
+  }
 }
-fs.rmSync(work, { recursive: true });

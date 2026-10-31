@@ -1,4 +1,4 @@
-// Builds the SVG rows in ../assets and writes ../README.md. The hero (assets/hero*.webp) comes from
+// Builds the SVG rows in ../assets and writes ../README.md. The hero (assets/hero.*) comes from
 // render/build-hero.mjs, which needs a GPU; run it again only when the hero itself changes.
 //   node build.mjs
 import fs from 'node:fs';
@@ -45,7 +45,7 @@ for (const [name, make] of rows) {
   }
 }
 for (const f of fs.readdirSync(ASSETS)) if (f.endsWith('.svg') && !keep.has(f)) fs.rmSync(path.join(ASSETS, f));
-const heroBytes = fs.statSync(path.join(ASSETS, 'hero.webp')).size + 0;
+const heroBytes = fs.statSync(path.join(ASSETS, 'hero.wide.dark.avif')).size;
 
 // Source order matters and is shaped by GitHub's <themed-picture>: when someone picks light or dark in
 // their GitHub settings it rewrites any media containing "prefers-color-scheme: light|dark" to match.
@@ -58,13 +58,26 @@ const pic = (name, alt) => `<picture>` +
   `<source media="${NARROW}" srcset="assets/${file(name, 'compact', 'dark')}">` +
   `<source media="(prefers-color-scheme: light)" srcset="assets/${file(name, 'wide', 'light')}">` +
   `<img src="assets/${file(name, 'wide', 'dark')}" width="100%" align="top" alt="${esc(alt)}"></picture>`;
-// The hero is one dark film in both themes; it only swaps for phones, and for a still when the visitor
-// has asked for reduced motion (GitHub doesn't pause animated WebP on its own).
+// The hero is an AVIF loop (AV1 predicts motion between frames; a field of moving points would be ~13 MB
+// as WebP), in four cuts: desktop/phone x dark/light, each on GitHub's own page colour so it sits on the
+// page with no panel. Reduced-motion visitors get the still (the first frame: the name), and browsers
+// without AVIF fall back to the same stills. Sources that pair a theme with another condition use the
+// no-space spelling so GitHub's <themed-picture> leaves them alone (see above).
+const H = (cut, theme, ext) => `assets/hero.${cut}.${theme}.${ext}`;
+const RM = '(prefers-reduced-motion: reduce)';
 const hero = `<picture>` +
-  `<source media="(prefers-reduced-motion: reduce) and ${NARROW}" srcset="assets/hero.compact.still.webp">` +
-  `<source media="(prefers-reduced-motion: reduce)" srcset="assets/hero.still.webp">` +
-  `<source media="${NARROW}" srcset="assets/hero.compact.webp">` +
-  `<img src="assets/hero.webp" width="100%" align="top" alt="${esc(`${content.name}: the name written in light on a dark table, refracted by a floating pane of glass whose surface was solved so its light spells it.`)}"></picture>`;
+  `<source media="${RM} and ${NARROW} and (prefers-color-scheme:light)" srcset="${H('compact', 'light', 'webp')}">` +
+  `<source media="${RM} and ${NARROW}" srcset="${H('compact', 'dark', 'webp')}">` +
+  `<source media="${RM} and (prefers-color-scheme:light)" srcset="${H('wide', 'light', 'webp')}">` +
+  `<source media="${RM}" srcset="${H('wide', 'dark', 'webp')}">` +
+  `<source media="${NARROW} and (prefers-color-scheme:light)" type="image/avif" srcset="${H('compact', 'light', 'avif')}">` +
+  `<source media="${NARROW}" type="image/avif" srcset="${H('compact', 'dark', 'avif')}">` +
+  `<source media="(prefers-color-scheme: light)" type="image/avif" srcset="${H('wide', 'light', 'avif')}">` +
+  `<source type="image/avif" srcset="${H('wide', 'dark', 'avif')}">` +
+  `<source media="${NARROW} and (prefers-color-scheme:light)" srcset="${H('compact', 'light', 'webp')}">` +
+  `<source media="${NARROW}" srcset="${H('compact', 'dark', 'webp')}">` +
+  `<source media="(prefers-color-scheme: light)" srcset="${H('wide', 'light', 'webp')}">` +
+  `<img src="${H('wide', 'dark', 'webp')}" width="100%" align="top" alt="${esc(`${content.name}, written in particles: dust flowing in ribbons of light gathers into the name, holds, then drifts away.`)}"></picture>`;
 
 const readme = `<div>\n<a href="${L.hero}">${hero}</a>\n${rows.map(([name, , href, alt]) => `<a href="${href}">${pic(name, alt)}</a>`).join('\n')}\n</div>\n`;
 fs.writeFileSync(path.join(ROOT, 'README.md'), readme);

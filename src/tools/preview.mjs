@@ -13,7 +13,7 @@ const md = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
 
 const api = execFileSync('gh', ['api', 'markdown', '-f', 'mode=markdown', '-f', 'context=feruzkarimovv/feruzkarimovv', '-F', `text=@${path.join(ROOT, 'README.md')}`], { encoding: 'utf8' });
 const count = (s, re) => (s.match(re) || []).length;
-for (const re of [/align="top"/g, /media="\(prefers-color-scheme: light\)"/g, /width="[\d.]+%"/g, /alt="/g, /<a href="(https|mailto)/g]) {
+for (const re of [/align="top"/g, /media="\(prefers-color-scheme: light\)"/g, /type="image\/avif"/g, /prefers-reduced-motion/g, /width="[\d.]+%"/g, /alt="/g, /<a href="(https|mailto)/g]) {
   if (count(md, re) !== count(api, re)) throw new Error(`sanitizer dropped ${re}: ${count(md, re)} in README, ${count(api, re)} after`);
 }
 
@@ -29,7 +29,7 @@ const page = fs.readFileSync(path.join(here, 'mock.html'), 'utf8')
   .replace(/<script>[\s\S]*<\/script>/, `<script>
   const v = Date.now();
   const sw = document.getElementById('switch'), readme = document.getElementById('readme');
-  readme.innerHTML = ${JSON.stringify(html)}.replace(/\\.svg"/g, '.svg?v=' + v + '"');
+  readme.innerHTML = ${JSON.stringify(html)}.replace(/\\.(svg|avif|webp)"/g, (m, e) => '.' + e + '?v=' + v + '"');
   function theme(light) {
     document.body.classList.toggle('light', light);
     // Same rule as github.com's <themed-picture> with an explicit theme: a source whose media matches

@@ -2,7 +2,7 @@
 
 export const name = 'Feruz Karimov';
 export const tagline = 'Builds products, and the models behind them.';
-export const heroNote = 'Not typeset. Light, bent by a pane of glass.';
+export const heroNote = 'Particles, not type.';
 
 // Every image needs a real link: GitHub wraps unlinked images in a link to the raw file, which breaks
 // the <picture> swap. These are the quiet ones (hero, section labels, footer).
@@ -52,4 +52,4 @@ export const contact = [
   { id: 'site', label: 'Website', value: 'feruz-karimov.dev', href: 'https://feruz-karimov.dev' },
 ];
 
-export const colophon = ['Hero: glass solved by optimal transport, light ray-traced', 'Set in Inter and Geist Mono'];
+export const colophon = ['Hero: particles, rendered on the GPU', 'Set in Inter and Geist Mono'];
