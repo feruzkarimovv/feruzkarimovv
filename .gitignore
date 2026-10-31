@@ -1,0 +1,6 @@
+.DS_Store
+node_modules/
+src/.cache/
+src/fonts/source/
+preview/
+.claude/

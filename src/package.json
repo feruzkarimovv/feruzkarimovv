@@ -1,0 +1,17 @@
+{
+  "name": "profile-src",
+  "private": true,
+  "type": "module",
+  "description": "Generates the SVGs in ../assets for the profile README.",
+  "dependencies": {
+    "opentype.js": "^1.3.4"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "fresh": "node build.mjs --fresh",
+    "preview": "node build.mjs && node tools/preview.mjs"
+  }
+}

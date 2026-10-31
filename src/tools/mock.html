@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile concepts</title>
+<style>
+  :root { --bg: #0d1117; --bg2: #010409; --fg: #f0f6fc; --fg2: #9198a1; --line: #3d444d; --link: #4493f8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif; }
+  .switch { position: sticky; top: 0; z-index: 5; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding: 10px 16px; background: #000; border-bottom: 1px solid #222; }
+  .switch b { font: 600 12px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .06em; color: #777; margin-right: 8px; }
+  .switch button { all: unset; cursor: pointer; padding: 6px 12px; border-radius: 999px; font-size: 13px; color: #aaa; border: 1px solid #2a2a2a; }
+  .switch button[aria-pressed="true"] { color: #000; background: #ededed; border-color: #ededed; }
+  .switch .note { margin-left: auto; color: #8a8a8a; font-size: 12.5px; max-width: 520px; }
+  header.gh { height: 64px; background: var(--bg2); border-bottom: 1px solid var(--line); display: flex; align-items: center; padding: 0 16px; gap: 16px; }
+  header.gh svg { fill: var(--fg); }
+  .tabs { display: flex; gap: 8px; height: 48px; align-items: end; border-bottom: 1px solid var(--line); padding-left: calc(50% - 640px + 296px + 24px + 24px); }
+  .tabs span { padding: 0 8px 12px; color: var(--fg); font-size: 14px; }
+  .tabs span.on { border-bottom: 2px solid #f78166; font-weight: 600; }
+  .layout { max-width: 1280px; margin: 0 auto; padding: 24px 32px; display: grid; grid-template-columns: 296px 1fr; gap: 24px; }
+  .side img { width: 296px; height: 296px; border-radius: 50%; border: 1px solid var(--line); display: block; }
+  .side h1 { margin: 16px 0 0; font-size: 24px; line-height: 1.25; font-weight: 600; }
+  .side .login { font-size: 20px; font-weight: 300; color: var(--fg2); line-height: 24px; }
+  .side .follow { display: block; text-align: center; margin: 16px 0; padding: 5px 16px; border: 1px solid var(--line); border-radius: 6px; background: #212830; font-weight: 500; }
+  .side .bio { font-size: 16px; margin-bottom: 12px; }
+  .side ul { list-style: none; padding: 0; margin: 12px 0; color: var(--fg); }
+  .side li { padding: 2px 0; }
+  .side li span { color: var(--fg2); margin-right: 8px; }
+  .readme { border: 1px solid var(--line); border-radius: 6px; padding: 24px; }
+  .readme .path { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--fg); margin-bottom: 16px; }
+  .readme .path i { font-style: normal; color: var(--fg2); }
+  /* GitHub's own rules for README content: no vertical-align help, 14px/1.5 line boxes. */
+  .markdown-body { width: 100%; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
+  .markdown-body img { max-width: 100%; box-sizing: content-box; }
+  .markdown-body > *:first-child { margin-top: 0 !important; }
+  .markdown-body > *:last-child { margin-bottom: 0 !important; }
+  .pinned { margin-top: 24px; }
+  .pinned h2 { font-size: 16px; font-weight: 400; margin: 0 0 8px; }
+  .pins { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .pin { border: 1px solid var(--line); border-radius: 6px; padding: 16px; color: var(--fg2); font-size: 12px; min-height: 104px; }
+  .pin b { color: var(--link); font-size: 14px; }
+  body.light { --bg: #ffffff; --bg2: #f6f8fa; --fg: #1f2328; --fg2: #59636e; --line: #d1d9e0; --link: #0969da; }
+  body.light .side .follow { background: #f6f8fa; }
+  @media (max-width: 1012px) { .layout { grid-template-columns: 1fr; } .side img { width: 120px; height: 120px; } .tabs { padding-left: 16px; } }
+</style>
+</head>
+<body>
+<div class="switch" id="switch"><b>CONCEPT</b></div>
+<header class="gh"><svg height="32" viewBox="0 0 24 24" width="32"><path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"/></svg></header>
+<nav class="tabs"><span class="on">Overview</span><span>Repositories</span><span>Projects</span><span>Packages</span></nav>
+<div class="layout">
+  <aside class="side">
+    <img src="https://avatars.githubusercontent.com/u/182824771?v=4" alt="">
+    <h1>Feruz Karimov</h1>
+    <div class="login">feruzkarimovv</div>
+    <span class="follow">Follow</span>
+    <div class="bio">cs @ rutgers, building</div>
+    <ul><li><span>⌖</span>sf/nj</li><li><span>⛓</span>feruz-karimov.dev</li><li><span>𝕏</span>@feruzkrm</li></ul>
+  </aside>
+  <main>
+    <div class="readme">
+      <div class="path">feruzkarimovv <i>/</i> README<i>.md</i></div>
+      <article class="markdown-body" id="readme"></article>
+    </div>
+    <div class="pinned"><h2>Pinned</h2><div class="pins"><div class="pin"><b>jonivor</b><br>…</div><div class="pin"><b>vannaris</b><br>…</div></div></div>
+  </main>
+</div>
+<script>
+  const concepts = window.CONCEPTS || [
+    { id: 'rosette', name: 'A · Rosette', note: 'Your last 52 weeks as a star-and-cross rosette: one star per day, one spoke per week, lit by how much got done. Redrawn nightly. The year assembles clockwise, a slow light sweep circles, today pings.', html: '<img src="concepts/rosette.svg" width="100%">' },
+    { id: 'board', name: 'B · Board', note: 'A split-flap departures board. Every flap riffles on load and lands on its letter; the next departure keeps blinking.', html: '<img src="concepts/board.svg" width="100%">' },
+    { id: 'threads', name: 'C · Threads', note: 'A new generative piece every night: each day of work lets out silk threads at its place on the timeline, through a noise field seeded by the date.', html: '<img src="concepts/threads.svg" width="100%">' },
+    { id: 'report', name: 'D · Report', note: 'Your year as an annual report. Three figures, one chart, footnotes. Numbers do the talking.', html: '<img src="concepts/report.svg" width="100%">' },
+  ];
+  const sw = document.getElementById('switch'), readme = document.getElementById('readme');
+  const note = Object.assign(document.createElement('span'), { className: 'note' });
+  function show(c) {
+    readme.innerHTML = c.html.replace(/\.svg"/g, `.svg?t=${Date.now()}"`);
+    note.textContent = c.note;
+    [...sw.querySelectorAll('button')].forEach((b) => b.setAttribute('aria-pressed', b.dataset.id === c.id));
+    history.replaceState(null, '', '#' + c.id);
+  }
+  concepts.forEach((c) => {
+    const b = Object.assign(document.createElement('button'), { textContent: c.name });
+    b.dataset.id = c.id; b.onclick = () => show(c); sw.append(b);
+  });
+  const lt = Object.assign(document.createElement('button'), { textContent: 'Light theme' });
+  lt.onclick = () => { document.body.classList.toggle('light'); lt.setAttribute('aria-pressed', document.body.classList.contains('light')); };
+  sw.append(lt, note);
+  show(concepts.find((c) => '#' + c.id === location.hash) || concepts[0]);
+</script>
+</body>
+</html>

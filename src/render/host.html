@@ -1,0 +1,113 @@
+<!doctype html>
+<meta charset="utf-8">
+<body style="margin:0;background:#000">
+<canvas id="c"></canvas>
+<script>
+// Minimal WebGL2 host for render.mjs. Scenes get a fullscreen-shader helper and text textures.
+let draw, gl, canvas, W, H;
+window.boot = async (src, w, h) => {
+  W = w; H = h;
+  canvas = document.getElementById('c');
+  canvas.width = W; canvas.height = H;
+  gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true, antialias: false, premultipliedAlpha: false });
+  if (!gl) throw new Error('no webgl2');
+  gl.getExtension('EXT_color_buffer_float');
+  gl.getExtension('OES_texture_float_linear');
+  const vs = `#version 300 es
+  in vec2 p; out vec2 uv; void main(){ uv = p * .5 + .5; gl_Position = vec4(p, 0., 1.); }`;
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const compile = (type, s) => { const sh = gl.createShader(type); gl.shaderSource(sh, s); gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh) + '\n' + s.split('\n').map((l, i) => (i + 1) + ': ' + l).join('\n'));
+    return sh; };
+  let unit = 0;
+  const ctx = {
+    gl, canvas, w: W, h: H,
+    // Fullscreen fragment shader; uniforms: numbers, [x,y], [x,y,z], [x,y,z,w], or {tex} for textures.
+    shader(fs) {
+      const prog = gl.createProgram();
+      gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
+      gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+      const loc = gl.getAttribLocation(prog, 'p');
+      return {
+        draw(u = {}, target = null) {
+          gl.useProgram(prog);
+          gl.bindFramebuffer(gl.FRAMEBUFFER, target ? target.fb : null);
+          gl.viewport(0, 0, target ? target.w : W, target ? target.h : H);
+          gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+          gl.enableVertexAttribArray(loc);
+          gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+          let t = 0;
+          for (const [k, v] of Object.entries(u)) {
+            const l = gl.getUniformLocation(prog, k);
+            if (l === null) continue;
+            if (v && v.tex) { gl.activeTexture(gl.TEXTURE0 + t); gl.bindTexture(gl.TEXTURE_2D, v.tex); gl.uniform1i(l, t++); }
+            else if (v && v.v4) gl.uniform4fv(l, v.v4);   // vec4 arrays: { v4: flat numbers }
+            else if (v && v.v3) gl.uniform3fv(l, v.v3);
+            else if (typeof v === 'number') gl.uniform1f(l, v);
+            else if (v.length === 2) gl.uniform2fv(l, v);
+            else if (v.length === 3) gl.uniform3fv(l, v);
+            else if (v.length === 4) gl.uniform4fv(l, v);
+            else gl.uniform1fv(l, v);
+          }
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+        },
+      };
+    },
+    // Float render target for accumulation / multi-pass.
+    target(w = W, h = H) {
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, w, h, 0, gl.RGBA, gl.FLOAT, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      const fb = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      return { tex, fb, w, h };
+    },
+    // Upload a 2D canvas (text, masks) as a texture.
+    texture(c2d, { mipmap = true } = {}) {
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c2d);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      if (mipmap) gl.generateMipmap(gl.TEXTURE_2D);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mipmap ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      return tex;
+    },
+    // Fonts for 2D canvas text (pass data: URLs or file URLs).
+    async font(family, url) { const f = new FontFace(family, `url(${url})`); await f.load(); document.fonts.add(f); },
+    overlay: null, // optional 2D canvas composited on top of each frame
+  };
+  const mod = await import(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+  draw = await mod.setup(ctx);
+  window.__ctx = ctx;
+};
+window.frame = async (t, f) => {
+  await draw(t, f);
+  gl.finish();
+  const ctx = window.__ctx;
+  let src = canvas;
+  const round = window.PARAMS?.round ? +window.PARAMS.round : 0;   // corner radius in px, baked as alpha
+  if (ctx.overlay || round) {
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    if (round) { g.beginPath(); g.roundRect(0, 0, W, H, round); g.clip(); }
+    g.drawImage(canvas, 0, 0);
+    if (ctx.overlay) g.drawImage(typeof ctx.overlay === 'function' ? ctx.overlay(t, f) : ctx.overlay, 0, 0);
+    src = c;
+  }
+  return src.toDataURL('image/png').split(',')[1];
+};
+</script>
